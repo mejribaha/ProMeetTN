@@ -1,8 +1,10 @@
 const express = require("express");
+const mongoose = require('mongoose')
+require('dotenv').config()
 const app = express();
 
 app.use(express.json()); //middleware pqrsing body to json object
-const users = [
+/*const users = [
   { id: 1, name: "Alice", email: "alice@example.com" },
   { id: 2, name: "Bob", email: "bob@example.com" },
 ];
@@ -10,7 +12,7 @@ const users = [
 const appointments = [
   { id: 1, user: 1, professional: "Dr. Smith", date: "2024-02-20" },
   { id: 2, user: 2, professional: "Coach Mike", date: "2024-02-21" },
-];
+];*/
 
 // CRUD of Appoinments
 app.post("/api/appointments/create", (req, res) => {
@@ -73,6 +75,13 @@ app.get("/", (req, res) => {
 });
 
 
-app.listen(5000, () => {
-  console.log("listening on " + 5000);
-});
+mongoose.connect(process.env.MONGO_URI)
+        .then(()=>{
+            console.log('connected to server database ')
+        }).catch(err=>(
+            console.log('error connecting to server database')
+        ))
+const PORT =process.env.PORT || 5000
+app.listen(PORT, () =>{
+    console.log('listening on port'+ PORT)
+})
