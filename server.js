@@ -2,8 +2,15 @@ const express = require("express");
 const mongoose = require('mongoose')
 require('dotenv').config()
 const app = express();
+const userRoutes = require("./routes/userRoute.js");
+const appoinmentRoute= require("./routes/appoinmentRoute.js");
+
+
+
 
 app.use(express.json()); //middleware pqrsing body to json object
+app.use("/users", userRoutes);
+app.use("/appoinments", appoinmentRoute);
 /*const users = [
   { id: 1, name: "Alice", email: "alice@example.com" },
   { id: 2, name: "Bob", email: "bob@example.com" },
@@ -13,7 +20,7 @@ const appointments = [
   { id: 1, user: 1, professional: "Dr. Smith", date: "2024-02-20" },
   { id: 2, user: 2, professional: "Coach Mike", date: "2024-02-21" },
 ];*/
-
+/*
 // CRUD of Appoinments
 app.post("/api/appointments/create", (req, res) => {
   const newAppointment = { id: appointments.length + 1, ...req.body };
@@ -66,6 +73,9 @@ app.delete("/api/users/delete/:id", (req, res) => {
   users.splice(index, 1);
   res.json({ message: "User deleted" });
 });
+*/
+
+
 
 app.get("/", (req, res) => {
   res.send("Hello World!");

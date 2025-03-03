@@ -1,7 +1,6 @@
 const mongoose = require('mongoose')
-const user = require('./user')
 const appoinmentSchema = new mongoose .Schema({
-    user:user,
+    userId:{type:mongoose.Schema.Types.ObjectId, ref:'User'},
     name:String,
     professionel:String,
     Date:Date
