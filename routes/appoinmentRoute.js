@@ -1,10 +1,12 @@
 const express = require("express");
 const router = express.Router();
-const appoinments = require("../models/appoinments.js");
+const Appoinments = require("../models/appoinments.js");
+const User = require("../models/user.js");
+const mongoose = require("mongoose");
 
-router.post("/", async (req, res) => {
+router.post("/create", async (req, res) => {
   try {
-    const appointment = new appoinments(req.body);
+    const appointment = new Appoinments(req.body);
     await appointment.save();
     res.status(201).send({ message: "appoinment saved successfully", appointment });
   } catch {
@@ -13,51 +15,101 @@ router.post("/", async (req, res) => {
 });
 router.get("/all", async (req, res) => {
   try {
-    const appoinments = await appoinments.find();
-    res.status(200).send(appoinments);
+    const appointments = await Appoinments.find(); // Correct model reference
+    res.status(200).json(appointments); // Use .json() instead of .send()
   } catch (error) {
-    res.status(500).send(error);
+    res
+      .status(500)
+      .json({ message: "Error fetching appointments", error: error.message });
   }
 });
 
 router.get("/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
-    const appoinment = await appoinments.findOne({ userId });
-    if (!userId) {
-      res.status(404).send({ message: "user not found" });
+
+    // Convert string to ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "Invalid user ID format" });
     }
-    res.send({ userId });
+
+    const user = await User.findById(userId);
+    console.log("User:", user);
+
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    const appointment = await Appoinments.findOne({ user: userId });
+    console.log("Appointment:", appointment);
+
+    if (!appointment) {
+      return res.status(404).json({ error: "No appointment found for the specified user" });
+    }
+
+    res.status(200).json({
+      user: {
+        name: user.name,
+        email: user.email,
+        age: user.age,
+      },
+      appointment: {
+        date: appointment.Date,
+        professional: appointment.professionel,
+      },
+    });
   } catch (error) {
-    res.status(500).send(error);
+    console.error("Error:", error);
+    res.status(500).json({ error: "Error fetching data", details: error.message });
   }
 });
 
-router.put("/update/:userId", async (req, res) => {
+router.put("/update/:user", async (req, res) => {
   try {
-    const appoinment = await appoinments.findOne({ userId: req.params.userId });
-    if (!userId) {
-      res.status(404).send({ message: "user not found" });
-    }
-    await appoinments.findOneAndUpdate(
-      { userId: req.params.userId },
-      { $set: { name: "ali" } },
-      { new: true }
-    );
-  } catch (error) {
-    res.status(500).send({ message: "error updating appopinment" });
-  }
+    const appointment = await Appoinments.findOne({
+      user: req.params.user,
+    });
 
-  router.delete("/:userId", async (req, res) => {
-    try {
-      const appoinment = await appoinments.findOne({ userId: req.params.userId });
-      if (!userId) {
-        res.status(404).send({ message: "appoinment not found" });
-      }
-      await appoinments.deleteOne({ userId: req.params.userId });
-    } catch (error) {
-      res.status(500).send({ message: "error updating appoinment" });
+    if (!appointment) {
+      return res.status(404).json({ message: "User not found" });
     }
-  });
+
+    const updatedAppointment = await Appoinments.findOneAndUpdate(
+      { user: req.params.user },
+      { $set: req.body }, // Updates only the provided fields
+      { new: true, runValidators: true } // Returns updated document & validates data
+    );
+
+    res
+      .status(200)
+      .json({
+        message: "Appointment updated successfully",
+        updatedAppointment,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error updating appointment", error: error.message });
+  }
 });
+
+
+ router.delete("/delete/:user", async (req, res) => {
+   try {
+     const appointment = await Appoinments.findOne({ user: req.params.user });
+
+     if (!appointment) {
+       return res.status(404).json({ message: "Appointment not found" });
+     }
+
+     await Appoinments.deleteOne({ user: req.params.user });
+
+     res.status(200).json({ message: "Appointment deleted successfully" });
+   } catch (error) {
+     res
+       .status(500)
+       .json({ message: "Error deleting appointment", error: error.message });
+   }
+ });
+
 module.exports = router;
