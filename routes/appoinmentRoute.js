@@ -15,12 +15,14 @@ router.post("/create", async (req, res) => {
 });
 router.get("/all", async (req, res) => {
   try {
-    const appointments = await Appoinments.find(); // Correct model reference
-    res.status(200).json(appointments); // Use .json() instead of .send()
+    const appointments = await Appoinments.find(); 
+    const events = appointments.map(appointment => ({
+      title: `Appointment with ${appointment.professionel}`,
+      start: appointment.Date, // Assuming `Date` is a valid date string
+    }));
+    res.status(200).json(events); 
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Error fetching appointments", error: error.message });
+    res.status(500).json({ message: "Error fetching appointments", error: error.message });
   }
 });
 

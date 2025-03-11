@@ -4,13 +4,34 @@ require('dotenv').config()
 const app = express();
 const userRoutes = require("./routes/userRoute.js");
 const appoinmentRoute= require("./routes/appoinmentRoute.js");
+const AuthRoutes= require('./routes/authroute.js');
+const Emailservice = require('./mailer/Emailservice.js');
 
 
 
+
+
+app.get('/file',(req , res )=>{
+  res.sendFile(__dirname +"/public/index.html" )})
+
+app.use(express.static("/public/index"));
 
 app.use(express.json()); //middleware pqrsing body to json object
 app.use("/users", userRoutes);
 app.use("/appoinments", appoinmentRoute);
+app.use('/auth',AuthRoutes);
+
+const emailService = new Emailservice({
+  host: process.env.EMAIL_HOST,
+  port: parseInt(process.env.EMAIL_PORT || '587'),
+  secure: process.env.EMAIL_SECURE === 'false',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  },
+});
+
+
 /*const users = [
   { id: 1, name: "Alice", email: "alice@example.com" },
   { id: 2, name: "Bob", email: "bob@example.com" },
